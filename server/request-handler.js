@@ -11,23 +11,13 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-var messages = [{
-  username: 'shawndrost',
-  text: 'trololo',
-  roomname: '4chan'
-}, {
-  username: 'lino',
-  text: 'something',
-  roomname: '4chan'
-}, {
-  username: 'ricky',
-  text: 'special',
-  roomname: 'lobby'
-}].map(function(item, index) {
-  item.objectId = index;
-  item.createdAt = Date.now();
-  return item;
-});
+var messages = [];
+
+var handleError = function(headers, res) {
+  res.writeHead(404, headers);
+  res.end();
+};
+
 
 var requestHandler = function(req, res) {
   // Request and Response come from node's http module.
@@ -83,20 +73,51 @@ var requestHandler = function(req, res) {
     //do something on this route
     console.log('route hit');
     if (req.method === 'GET') {
+
       // do something with method
       headers['Content-Type'] = 'application/json';
       res.writeHead(statusCode, headers);
       res.end(JSON.stringify({results: messages}));
+
     } else if (req.method === 'POST') {
       statusCode = 201;
       res.writeHead(statusCode, headers);
-      messages.push(/* new message data goes here */);
-      res.end(JSON.stringify({results: messages}));
+
+      var body = '';
+
+      req.on('data', function(data) {
+        body += data;
+      });
+      
+      req.on('end', function() {
+        body = JSON.parse(body);
+        
+        body.objectId = messages.length;
+        body.createdAt = Date.now();
+
+        messages.push(body);
+        res.end(JSON.stringify({results: messages}));
+
+      });
+      
+      return;
+
+    } else if (req.method === 'OPTIONS') {
+      
+      headers['Allow'] = 'GET, POST, PUT, DELETE, OPTIONS';
+      res.writeHead(statusCode, headers);
+      res.end('OK');
+
+    } else {
+      handleError(headers, res);
     }
     // console.log('WE ARE IN ROUTE'); 
+  } else {
+    handleError(headers, res);
   }
   
 };
+
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that

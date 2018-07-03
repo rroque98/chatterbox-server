@@ -11,8 +11,17 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-var messages = [];
-
+var messages = [{
+  objectId: 0,
+  username: 'lino',
+  text: 'hey this works',
+  roomname: 'lobby'
+}, {
+  objectId: 1,
+  username: 'ricky',
+  text: 'hey this works',
+  roomname: 'lobby'
+}];
 var handleError = function(headers, res) {
   res.writeHead(404, headers);
   res.end();
@@ -80,6 +89,7 @@ var requestHandler = function(req, res) {
       res.end(JSON.stringify({results: messages}));
 
     } else if (req.method === 'POST') {
+      console.log('post data', req);
       statusCode = 201;
       res.writeHead(statusCode, headers);
 
